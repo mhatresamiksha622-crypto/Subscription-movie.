@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Subscription-Based Movies</title>
+<style>
+:root{--bg:#101116;--panel:#1b1d25;--text:#f5f5f7;--muted:#b8bac5;--accent:#7c5cff;--line:#333642;--green:#24b47e}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,Helvetica,sans-serif}
+header{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:18px 6%;border-bottom:1px solid var(--line);position:sticky;top:0;background:#101116ed;backdrop-filter:blur(10px);z-index:3}
+.logo{font-weight:800;font-size:1.2rem}.logo span{color:var(--accent)}nav{display:flex;gap:10px;flex-wrap:wrap}
+button,.btn{border:0;border-radius:9px;padding:11px 15px;font-weight:700;cursor:pointer;text-decoration:none;display:inline-block}
+.primary{background:var(--accent);color:white}.secondary{background:#2a2d38;color:white;border:1px solid #424654}
+main{max-width:1100px;margin:auto;padding:28px 18px 60px}.hero{padding:30px 0 22px}.hero h1{font-size:clamp(2rem,5vw,3.5rem);margin:0 0 10px}.hero p,.muted{color:var(--muted);line-height:1.55}
+.searchbar{display:flex;gap:9px;max-width:700px;margin:18px 0}.searchbar input{flex:1;min-width:0}
+input,select{width:100%;padding:13px;border:1px solid #454957;border-radius:9px;background:#171922;color:white;font-size:1rem}
+.section-title{margin:34px 0 16px;font-size:1.5rem}.plans,.movies{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:15px;padding:20px}.card h3{margin-top:0}.price{font-size:2rem;font-weight:800;margin:10px 0}.price small{font-size:.9rem;color:var(--muted);font-weight:400}.card ul{padding-left:19px;color:var(--muted);line-height:1.9}.card .btn{width:100%;text-align:center}
+.featured{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.movies{grid-template-columns:repeat(4,minmax(0,1fr))}.movie{padding:0;overflow:hidden}.poster{height:180px;display:flex;align-items:center;justify-content:center;text-align:center;padding:14px;background:linear-gradient(135deg,#302b63,#24243e,#0f0c29);font-size:1.25rem;font-weight:800}.movie:nth-child(3n+2) .poster{background:linear-gradient(135deg,#42275a,#734b6d)}.movie:nth-child(3n) .poster{background:linear-gradient(135deg,#134e5e,#71b280)}.movie-info{padding:14px}.tag{display:inline-block;border:1px solid #505361;border-radius:20px;padding:4px 8px;font-size:.75rem;color:#ddd;margin:0 4px 5px 0}
+.notice{padding:13px 15px;border:1px solid #75602d;background:#2b2516;color:#ffe2a0;border-radius:10px;line-height:1.5}
+.modal{position:fixed;inset:0;background:#000b;display:none;align-items:center;justify-content:center;padding:16px;z-index:10}.modal.open{display:flex}.dialog{width:min(560px,100%);max-height:90vh;overflow:auto;background:var(--panel);border:1px solid #414552;border-radius:16px;padding:22px}.dialog-head{display:flex;justify-content:space-between;align-items:center;gap:10px}.close{font-size:1.3rem;background:#2c2f39;color:white;padding:6px 11px}.pay-options{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:14px 0}.pay-option{border:1px solid #454957;background:#20232d;color:white;text-align:left}.pay-option.active{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}.qr{display:block;width:min(250px,100%);margin:16px auto;background:white;padding:10px;border-radius:10px}.hidden{display:none!important}.field{margin:12px 0}.field label{display:block;margin-bottom:7px;color:#ddd}.status{padding:12px;border-radius:9px;background:#202b26;color:#a7f3d0;margin-top:12px}.small{font-size:.86rem;color:var(--muted)}footer{text-align:center;padding:25px;border-top:1px solid var(--line);color:var(--muted)}
+@media(max-width:800px){.plans{grid-template-columns:1fr}.movies{grid-template-columns:repeat(2,minmax(0,1fr))}header{padding:14px 4%}.hero{padding-top:22px}}
+@media(max-width:420px){.movies{grid-template-columns:1fr 1fr}.poster{height:145px}.searchbar{flex-wrap:wrap}.searchbar button{width:100%}}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">Cine<span>Pass</span></div>
+  <nav><button class="secondary" id="loginBtn">Login</button><button class="primary" id="plansNav">Subscribe</button></nav>
+</header>
+<main>
+  <section class="hero">
+    <h1>Movies for every mood.</h1>
+    <p>Explore Hindi and Marathi movie titles, choose a subscription plan, and continue to the payment screen.</p>
+    <div class="searchbar"><input id="movieSearch" type="search" placeholder="Search a Hindi or Marathi movie…" aria-label="Search movies"><button class="primary" id="searchBtn">Search</button></div>
+    <p class="small">Demo catalog includes sample titles. Live movie data requires a movie database API key.</p>
+  </section>
+  <section id="resultsSection">
+    <h2 class="section-title">Movies to explore</h2>
+    <div id="movieGrid" class="movies"></div>
+    <p id="noResults" class="muted hidden">No matching title in this demo catalog. Try another movie name.</p>
+  </section>
+  <section id="plans">
+    <h2 class="section-title">Choose your subscription</h2>
+    <div class="plans">
+      <article class="card"><h3>Basic</h3><p class="muted">For casual movie nights</p><div class="price">₹99 <small>/ month</small></div><ul><li>Hindi & Marathi catalog</li><li>Standard quality</li><li>1 device</li></ul><button class="primary choose-plan" data-plan="Basic" data-price="99">Select Basic</button></article>
+      <article class="card featured"><h3>Standard <span class="tag">Popular</span></h3><p class="muted">For everyday streaming</p><div class="price">₹199 <small>/ month</small></div><ul><li>Hindi & Marathi catalog</li><li>Full HD (where available)</li><li>2 devices</li></ul><button class="primary choose-plan" data-plan="Standard" data-price="199">Select Standard</button></article>
+      <article class="card"><h3>Premium</h3><p class="muted">For the whole household</p><div class="price">₹299 <small>/ month</small></div><ul><li>Hindi & Marathi catalog</li><li>Best available quality</li><li>4 devices</li></ul><button class="primary choose-plan" data-plan="Premium" data-price="299">Select Premium</button></article>
+    </div>
+  </section>
+</main>
+<footer>© <span id="year"></span> CinePass · Demo subscription website</footer>
+
+<div class="modal" id="loginModal" role="dialog" aria-modal="true" aria-labelledby="loginTitle">
+ <div class="dialog"><div class="dialog-head"><h2 id="loginTitle">Login / Sign up</h2><button class="close" data-close="loginModal" aria-label="Close">×</button></div>
+ <p class="muted">Demo form only. It does not create a real account or store passwords.</p>
+ <form id="loginForm"><div class="field"><label for="email">Email</label><input id="email" type="email" placeholder="you@example.com" required autocomplete="email"></div><div class="field"><label for="password">Password</label><input id="password" type="password" minlength="6" placeholder="At least 6 characters" required autocomplete="current-password"></div><button class="primary" type="submit">Continue</button></form><div id="loginStatus" class="status hidden"></div></div>
+</div>
+
+<div class="modal" id="paymentModal" role="dialog" aria-modal="true" aria-labelledby="paymentTitle">
+ <div class="dialog"><div class="dialog-head"><h2 id="paymentTitle">Complete your subscription</h2><button class="close" data-close="paymentModal" aria-label="Close">×</button></div>
+ <p id="selectedPlan" class="muted"></p>
+ <div class="notice">Demo checkout: no money will be charged. Add a verified payment gateway before accepting real payments.</div>
+ <h3>Choose payment method</h3>
+ <div class="pay-options"><button class="pay-option active" data-method="upi">UPI ID</button><button class="pay-option" data-method="qr">Scan QR</button><button class="pay-option" data-method="gpay">Google Pay</button><button class="pay-option" data-method="phonepe">PhonePe</button></div>
+ <div id="upiPanel"><div class="field"><label for="upiId">UPI ID (demo input)</label><input id="upiId" placeholder="name@bank" autocomplete="off"></div></div>
+ <div id="qrPanel" class="hidden"><img class="qr" id="qrImage" alt="Demo QR code for checkout"><p class="small">This is a demo QR and will not transfer money. Replace it with your verified merchant QR/payment-provider checkout.</p></div>
+ <div id="appPanel" class="hidden"><p class="muted">Select your UPI app on your phone after a real payment provider is connected. This demo will not open or confirm an app payment.</p></div>
+ <button class="primary" id="payDemo" style="width:100%;margin-top:12px">Continue (Demo only)</button><div id="payStatus" class="status hidden" role="status"></div>
+ </div>
+</div>
+<script>
+(function(){
+"use strict";
+const movies=[
+ {title:"Sairat",lang:"Marathi",year:2016,genre:"Romance · Drama"},
+ {title:"Natsamrat",lang:"Marathi",year:2016,genre:"Drama"},
+ {title:"Katyar Kaljat Ghusali",lang:"Marathi",year:2015,genre:"Musical · Drama"},
+ {title:"Timepass",lang:"Marathi",year:2014,genre:"Romance · Comedy"},
+ {title:"Pawankhind",lang:"Marathi",year:2022,genre:"Historical · Action"},
+ {title:"Lai Bhaari",lang:"Marathi",year:2014,genre:"Action · Drama"},
+ {title:"Ved",lang:"Marathi",year:2022,genre:"Romance · Drama"},
+ {title:"Duniyadari",lang:"Marathi",year:2013,genre:"Romance · Drama"},
+ {title:"Dangal",lang:"Hindi",year:2016,genre:"Sports · Drama"},
+ {title:"3 Idiots",lang:"Hindi",year:2009,genre:"Comedy · Drama"},
+ {title:"Taare Zameen Par",lang:"Hindi",year:2007,genre:"Family · Drama"},
+ {title:"Chhichhore",lang:"Hindi",year:2019,genre:"Comedy · Drama"},
+ {title:"Zindagi Na Milegi Dobara",lang:"Hindi",year:2011,genre:"Adventure · Drama"},
+ {title:"Queen",lang:"Hindi",year:2014,genre:"Comedy · Drama"},
+ {title:"Lagaan",lang:"Hindi",year:2001,genre:"Sports · Drama"},
+ {title:"Drishyam",lang:"Hindi",year:2015,genre:"Thriller · Crime"}
+];
+const grid=document.getElementById("movieGrid"), noResults=document.getElementById("noResults");
+function renderMovies(list){grid.replaceChildren();list.forEach(m=>{const card=document.createElement("article");card.className="card movie";const poster=document.createElement("div");poster.className="poster";poster.textContent=m.title;const info=document.createElement("div");info.className="movie-info";const title=document.createElement("h3");title.textContent=m.title;const meta=document.createElement("p");meta.className="small";meta.textContent=m.year+" · "+m.lang;const genre=document.createElement("p");genre.className="muted";genre.textContent=m.genre;const tag=document.createElement("span");tag.className="tag";tag.textContent=m.lang;info.append(title,meta,genre,tag);card.append(poster,info);grid.append(card)});noResults.classList.toggle("hidden",list.length!==0)}
+renderMovies(movies);
+function search(){const q=document.getElementById("movieSearch").value.trim().toLocaleLowerCase();const list=movies.filter(m=>(m.title+" "+m.lang+" "+m.genre+" "+m.year).toLocaleLowerCase().includes(q));renderMovies(list);document.getElementById("resultsSection").scrollIntoView({behavior:"smooth",block:"start"})}
+document.getElementById("searchBtn").addEventListener("click",search);
+document.getElementById("movieSearch").addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();search()}});
+document.getElementById("plansNav").addEventListener("click",()=>document.getElementById("plans").scrollIntoView({behavior:"smooth"}));
+const openModal=id=>document.getElementById(id).classList.add("open");
+const closeModal=id=>document.getElementById(id).classList.remove("open");
+document.getElementById("loginBtn").addEventListener("click",()=>openModal("loginModal"));
+document.querySelectorAll("[data-close]").forEach(b=>b.addEventListener("click",()=>closeModal(b.dataset.close)));
+document.querySelectorAll(".modal").forEach(m=>m.addEventListener("click",e=>{if(e.target===m)m.classList.remove("open")}));
+document.addEventListener("keydown",e=>{if(e.key==="Escape")document.querySelectorAll(".modal.open").forEach(m=>m.classList.remove("open"))});
+document.getElementById("loginForm").addEventListener("submit",e=>{e.preventDefault();const s=document.getElementById("loginStatus");s.textContent="Form validated for demo. Real login requires a secure authentication backend.";s.classList.remove("hidden")});
+let selected={plan:"",price:0}, method="upi";
+document.querySelectorAll(".choose-plan").forEach(b=>b.addEventListener("click",()=>{selected={plan:b.dataset.plan,price:Number(b.dataset.price)};document.getElementById("selectedPlan").textContent=selected.plan+" plan · ₹"+selected.price+" / month";document.getElementById("payStatus").classList.add("hidden");openModal("paymentModal")}));
+function setMethod(next){method=next;document.querySelectorAll(".pay-option").forEach(b=>b.classList.toggle("active",b.dataset.method===next));document.getElementById("upiPanel").classList.toggle("hidden",next!=="upi");document.getElementById("qrPanel").classList.toggle("hidden",next!=="qr");document.getElementById("appPanel").classList.toggle("hidden",next!=="gpay"&&next!=="phonepe")}
+document.querySelectorAll(".pay-option").forEach(b=>b.addEventListener("click",()=>setMethod(b.dataset.method)));
+/* A generated demo QR is intentionally not a payment QR. Replace after integrating a payment provider. */
+document.getElementById("qrImage").src="https://api.qrserver.com/v1/create-qr-code/?size=240x240&data="+encodeURIComponent("DEMO ONLY - No payment accepted");
+document.getElementById("payDemo").addEventListener("click",()=>{const s=document.getElementById("payStatus");s.textContent=method==="upi"&&!document.getElementById("upiId").value.trim()?"Please enter a UPI ID to continue the demo.":"Demo checkout only: payment has NOT been made or verified. Connect a payment gateway to activate subscriptions.";s.classList.remove("hidden")});
+document.getElementById("year").textContent=new Date().getFullYear();
+})();
+</script>
+</body></html>
